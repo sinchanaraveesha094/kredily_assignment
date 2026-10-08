@@ -1,0 +1,465 @@
+{
+  "info": {
+    "name": "Kredily HRMS - API tests",
+    "_postman_id": "kredily-qa-intern-001",
+    "description": "Base URL was not provided, so {{base_url}} is a placeholder host and the /enduser/... paths are assumed (not verified). Test scripts assert status, time, schema basics and negative handling.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://kredily.com"
+    },
+    {
+      "key": "username",
+      "value": "peoplekredily1@yopmail.com"
+    },
+    {
+      "key": "password",
+      "value": "Pass@9865"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Auth - Login",
+      "item": [
+        {
+          "name": "POS - valid login returns token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Responds in < 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "const j = pm.response.json();",
+                  "pm.test('Token returned', () => pm.expect(JSON.stringify(j)).to.match(/token/i));",
+                  "// store token: adjust the path to match the captured response, e.g. j.data.token",
+                  "const tok = j.token || (j.data && j.data.token) || (j.data && j.data.access_token) || j.access_token;",
+                  "if (tok) pm.collectionVariables.set('token', tok);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enduser/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enduser",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "NEG - wrong password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Rejected with 4xx', () => pm.expect(pm.response.code).to.be.within(400,422));",
+                  "pm.test('No token in response', () => pm.expect(pm.response.text()).to.not.match(/\"(access_)?token\"\\s*:\\s*\"[^\"]+\"/i));",
+                  "pm.test('Error message present', () => pm.expect(pm.response.text().length).to.be.above(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enduser/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enduser",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"Wrong@1234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "NEG - empty username",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Rejected with 4xx', () => pm.expect(pm.response.code).to.be.within(400,422));",
+                  "pm.test('No token in response', () => pm.expect(pm.response.text()).to.not.match(/\"(access_)?token\"\\s*:\\s*\"[^\"]+\"/i));",
+                  "pm.test('Error message present', () => pm.expect(pm.response.text().length).to.be.above(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enduser/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enduser",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "NEG - malformed email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Rejected with 4xx', () => pm.expect(pm.response.code).to.be.within(400,422));",
+                  "pm.test('No token in response', () => pm.expect(pm.response.text()).to.not.match(/\"(access_)?token\"\\s*:\\s*\"[^\"]+\"/i));",
+                  "pm.test('Error message present', () => pm.expect(pm.response.text().length).to.be.above(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enduser/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enduser",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"peoplekredily1@yopmailcom\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "NEG - SQL-injection style input",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Rejected with 4xx', () => pm.expect(pm.response.code).to.be.within(400,422));",
+                  "pm.test('No token in response', () => pm.expect(pm.response.text()).to.not.match(/\"(access_)?token\"\\s*:\\s*\"[^\"]+\"/i));",
+                  "pm.test('Error message present', () => pm.expect(pm.response.text().length).to.be.above(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enduser/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enduser",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"' OR '1'='1\",\n  \"password\": \"x\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Attendance - Team / daily",
+      "item": [
+        {
+          "name": "POS - fetch attendance for current week",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON body', () => pm.response.to.be.json);",
+                  "pm.test('Responds in < 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enduser/attendance?from=2026-10-02&to=2026-10-08",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enduser",
+                "attendance?from=2026-10-02&to=2026-10-08"
+              ]
+            }
+          }
+        },
+        {
+          "name": "NEG - no token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401/403 without token', () => pm.expect([401,403]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enduser/attendance?from=2026-10-02&to=2026-10-08",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enduser",
+                "attendance?from=2026-10-02&to=2026-10-08"
+              ]
+            }
+          }
+        },
+        {
+          "name": "NEG - invalid date range (from > to)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('4xx or empty result, never 500', () => pm.expect(pm.response.code).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enduser/attendance?from=2026-10-08&to=2026-10-02",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enduser",
+                "attendance?from=2026-10-08&to=2026-10-02"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Directory - Employees",
+      "item": [
+        {
+          "name": "POS - list employees",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON body', () => pm.response.to.be.json);",
+                  "pm.test('Responds in < 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "",
+                  "const j = pm.response.json();",
+                  "const list = Array.isArray(j) ? j : (j.data || j.employees || []);",
+                  "pm.test('Returns the directory list', () => pm.expect(list).to.be.an('array'));",
+                  "pm.test('Count matches app (3 people)', () => pm.expect(list.length).to.eql(3));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enduser/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enduser",
+                "employees"
+              ]
+            }
+          }
+        },
+        {
+          "name": "NEG - no token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401/403 without token', () => pm.expect([401,403]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enduser/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enduser",
+                "employees"
+              ]
+            }
+          }
+        },
+        {
+          "name": "NEG - search with no match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 with empty list, not 500', () => pm.expect(pm.response.code).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enduser/employees?search=zzzz",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enduser",
+                "employees?search=zzzz"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

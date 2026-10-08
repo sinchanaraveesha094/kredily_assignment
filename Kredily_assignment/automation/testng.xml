@@ -1,0 +1,13 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Kredily Mobile Suite">
+  <test name="Journeys">
+    <groups>
+      <run>
+        <include name="journey"/>
+      </run>
+    </groups>
+    <classes>
+      <class name="com.kredily.tests.KredilyJourneyTests"/>
+    </classes>
+  </test>
+</suite>
